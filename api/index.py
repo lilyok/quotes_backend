@@ -9,20 +9,25 @@ app = Sanic("quotes")
 
 def get_quote():
     # TODO replace to reading random from database
-    return random.choice(["test quote", "another test quote", "quote with a\nnewline", "ololol ohoho", "pomodoro roror", "123", "324234dsdsa"])
-
+    quotes = ["test quote", "another test quote", "quote with a\nnewline", "ololol ohoho", "pomodoro roror", "123", "324234dsdsa"]
+    index = random.randrange(len(quotes))
+    import uuid
+    return {'id': str(uuid.uuid4()), 'quote': quotes[index], 'like': random.choice([True, False])}
 
 @app.route('/', methods=['GET'])
 @app.route('/api', methods=['GET'])
 async def index(request):
     user_id = request.args.get('id') or None
-    return sjson({'quote': get_quote(), 'like': random.choice([True, False]), 'status': 'ok'})
+    # print("user_id=", user_id)
+    result = get_quote()
+    result.update({'status': 'ok'})
+    return sjson(result)
 
 
 @app.route('/like', methods=['POST'])
 @app.route('/api/like', methods=['POST'])
 async def ad_post(request):
-    print(request.body)  #  quote_id, is_like
+    # print(request.body)  #  user_id, quote_id, is_like
     return sjson({'status': 'ok'})
 
 
