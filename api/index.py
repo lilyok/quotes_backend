@@ -34,7 +34,7 @@ async def ad_post(request):
 @app.route('/categories', methods=['POST'])
 @app.route('/api/categories', methods=['POST'])
 async def ad_post(request):
-    print(request.body)  #  {categories: [1,2,3]}
+    print(request.body)  #  { user_id: 12321, categories: [1,2,3]}
     return sjson({'status': 'ok'})
 
 
