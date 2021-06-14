@@ -68,7 +68,7 @@ async def ad_post(request):
 @app.route('/test_notification', methods=['GET'])  # TODO delete
 @app.route('/api/test_notification', methods=['GET'])  # TODO delete
 async def test_notification(request):
-    notifications.send()
+    # notifications.send()  # TODO disabled notification until the logic is implemented
     return sjson({'status': 'ok'})
 
 
