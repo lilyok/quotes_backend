@@ -1,26 +1,30 @@
 import os
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 from gobiko.apns import APNsClient
 
 # TODO make in db
 
-USER_DEVICES = [{
-    'user_id': 'sdsfds',
-    'device_token': 'sfdesf'
-}]
+USER_DEVICES = [
+    # {
+    #     'user_id': 'sdsfds',
+    #     'device_token': 'sfdesf'
+    # }
+]
 
-NOTIFIIONS = [{
-    'device_token': 'awdadawd',  # required
-    'start_time': '11:00',
-    'stop_time': '23:00',
-    'number': 3,
-    'seconds_offset': 0,  # required
-    'start_time_utc': '11:00',
-    'stop_time_utc': '23:00',
-    'notification_times': '14:00,17:00,20:00'
-}]
+NOTIFIIONS = [
+    # {
+    #     'device_token': os.environ['DEVICE_TOKEN'],  # required # TODO get from database for each
+    #     'start_time': '11:00',
+    #     'stop_time': '23:00',
+    #     'number': 3,
+    #     'seconds_offset': 0,  # required
+    #     'start_time_utc': '11:00',
+    #     'stop_time_utc': '23:00',
+    #     'notification_times': '13:30,17:00,23:00'
+    # }
+]
 
 CATEGORIES = {  # name: id
     'Common Sense': 0,
@@ -29,19 +33,19 @@ CATEGORIES = {  # name: id
 }
 
 CATEGORY_USERS = [  # many to many
-    {
-        'user_id': 'sdeded',
-        'category_id': 0
-    }
+    # {
+    #     'user_id': 'sdeded',
+    #     'category_id': 0
+    # }
 ]
 
 
 #. venv/bin/postactivate  
 
 class NotificationClient:
+    last_time = datetime.now(dt_timezone.utc)
 
     def __init__(self):
-        print(os.environ['USE_SANDBOX'], type(os.environ['USE_SANDBOX']))
         self.client = APNsClient(  # TODO move parameters to enviroment
             team_id=os.environ['TEAM_ID'],
             bundle_id=os.environ['BUNDLE_ID'],
@@ -53,8 +57,7 @@ class NotificationClient:
         )
 
 
-    def send(self, message='All your base are belong to us'):
-        device_token = os.environ['DEVICE_TOKEN']  # TODO get from database for each
+    def send(self, device_token, message='Test message'):
         self.client.send_message(
             device_token,
             message,  # TODO add quote here
@@ -168,8 +171,8 @@ class NotificationClient:
 
 
     def notify(self):
-        local_utc_hours_minutes = self.__get_utc_hours_minutes(datetime.now(datetime.timezone.utc))  # '16:28'
-        # print('local_utc_hours_minutes=', local_utc_hours_minutes)
+        _, last_utc_hours_minutes = self.__get_utc_hours_minutes(self.last_time)
+        tmp_time, local_utc_hours_minutes = self.__get_utc_hours_minutes(datetime.now(dt_timezone.utc))  # '16:28'
 
         for row in NOTIFIIONS:  # TODO
             # for all users, get from db table notifications start_time("11:00"), stop_time("23:00"), number
@@ -178,12 +181,13 @@ class NotificationClient:
                 continue  # user doesn't want notification at the current time
 
             for t in row['notification_times'].split(','):
-                if t != local_utc_hours_minutes:
+                if t > local_utc_hours_minutes or t <= last_utc_hours_minutes:
                     continue
 
-                self.client.send()
+                self.send(device_token=row['device_token'])
                 break
 
+        self.last_time = tmp_time
 
 
 
