@@ -171,6 +171,7 @@ class NotificationClient:
 
 
     def notify(self):
+        print(NOTIFIIONS)
         _, last_utc_hours_minutes = self.__get_utc_hours_minutes(self.last_time)
         tmp_time, local_utc_hours_minutes = self.__get_utc_hours_minutes(datetime.now(dt_timezone.utc))  # '16:28'
 
@@ -181,9 +182,12 @@ class NotificationClient:
                 continue  # user doesn't want notification at the current time
 
             for t in row['notification_times'].split(','):
+                print(last_utc_hours_minutes, local_utc_hours_minutes, t)
+
                 if t > local_utc_hours_minutes or t <= last_utc_hours_minutes:
                     continue
 
+                print(f'send for time={t} device_token={row["device_token"]}')
                 self.send(device_token=row['device_token'])
                 break
 
